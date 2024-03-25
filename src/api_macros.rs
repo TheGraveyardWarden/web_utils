@@ -3,7 +3,7 @@ macro_rules! to_json {
     ($obj: expr) => {
         match $obj.to_json() {
             Ok(j) => j,
-            Err(err) => {return HttpResponse::BadRequest().body(err.msg());}
+            Err(err) => return HttpResponse::BadRequest().body(err.msg())
         }
     };
 }
@@ -15,7 +15,7 @@ macro_rules! str_to_oid {
     ($str_oid: expr) => {
         match ObjectId::parse_str($str_oid) {
             Ok(oid) => oid,
-            Err(_) => {return HttpResponse::BadRequest().body("Invalid ObjectId");}
+            Err(_) => return HttpResponse::BadRequest().body("Invalid ObjectId")
         }
     };
 }
@@ -36,10 +36,10 @@ pub use get_by_id;
 
 #[macro_export]
 macro_rules! resp_with_auth_headers {
-    ($id: expr) => {
+    ($id: expr, $exp_days: expr, $secret: expr) => {
         HttpResponse::Ok()
         .insert_header(("Access-Control-Expose-Headers", "x-auth"))
-        .insert_header(("x-auth", Token::encode($id, Duration::days(TOKEN_EXP_DAYS), SECRET_KEY).unwrap()))
+        .insert_header(("x-auth", Token::encode($id, Duration::days($exp_days), $secret).unwrap()))
     };
 }
 
