@@ -13,6 +13,5 @@ pub mod model;
 pub use model::Model;
 
 pub mod file;
+pub use file::{File, FileSaver};
 
-// TODO: re-structure file -> File object must handle everything. not single functions.
-// This does the job for now. :)

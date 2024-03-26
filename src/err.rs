@@ -23,6 +23,7 @@ pub enum Error {
     IOError(IOError),
     TokenExpired,
     InvalidFile,
+    DirNotSpecified
 }
 
 impl Error {
@@ -36,7 +37,8 @@ impl Error {
             JWTError(err) => format!("JWTError: {:?}", err),
             IOError(err) => format!("IOError: {:?}", err),
             TokenExpired => format!("Token expired"),
-            InvalidFile => format!("Invalid file")
+            InvalidFile => format!("Invalid file"),
+            DirNotSpecified => format!("directory not specified")
         }
     }
 }
