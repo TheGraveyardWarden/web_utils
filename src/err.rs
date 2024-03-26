@@ -14,6 +14,7 @@ macro_rules! impl_from {
     };
 }
 
+#[derive(Debug)]
 pub enum Error {
     NotFound,
     MongoError(MongoError),
@@ -22,6 +23,22 @@ pub enum Error {
     IOError(IOError),
     TokenExpired,
     InvalidFile,
+}
+
+impl Error {
+    pub fn msg(self) -> String {
+        use Error::*;
+
+        match self {
+            NotFound => format!("Document not found"),
+            MongoError(err) => format!("MongoError: {:?}", err),
+            JsonError(err) => format!("JsonError: {:?}", err),
+            JWTError(err) => format!("JWTError: {:?}", err),
+            IOError(err) => format!("IOError: {:?}", err),
+            TokenExpired => format!("Token expired"),
+            InvalidFile => format!("Invalid file")
+        }
+    }
 }
 
 impl_from!(MongoError, Error::MongoError);
