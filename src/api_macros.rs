@@ -36,10 +36,10 @@ pub use get_by_id;
 
 #[macro_export]
 macro_rules! resp_with_auth_headers {
-    ($id: expr, $exp_days: expr, $secret: expr) => {
+    ($token: expr) => {
         HttpResponse::Ok()
         .insert_header(("Access-Control-Expose-Headers", "x-auth"))
-        .insert_header(("x-auth", Token::encode($id, Duration::days($exp_days), $secret).unwrap()))
+        .insert_header(("x-auth", $token))
     };
 }
 
