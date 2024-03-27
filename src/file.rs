@@ -162,6 +162,10 @@ impl File {
         }
     }
 
+    pub fn get_filename(&self) -> &String {
+        &self.filename
+    }
+
     pub fn set_dir(&mut self, dir: String) {
         self.dir = Some(dir);
     }
