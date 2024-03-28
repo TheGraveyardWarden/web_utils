@@ -8,7 +8,6 @@ use tokio::{
     io::{AsyncWriteExt, AsyncReadExt}
 };
 use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
 
 
 #[derive(Debug)]
@@ -147,36 +146,27 @@ impl<'a> Default for FileSaver<'a> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct File {
     filename: String,
-    #[serde(skip_serializing)]
-    dir: Option<String>
+    dir: String
 }
 
 impl File {
-    pub fn new(filename: String, dir: impl Into<Option<String>>) -> Self {
-        Self {
-            filename,
-            dir: dir.into()
-        }
+    pub fn new(filename: String, dir: String) -> Self {
+        Self { filename, dir }
     }
 
     pub fn get_filename(&self) -> &String {
         &self.filename
     }
 
-    pub fn set_dir(&mut self, dir: String) {
-        self.dir = Some(dir);
+    pub fn get_dir(&self) -> &String {
+        &self.dir
     }
 
     pub async fn remove(self) -> Result<()> {
-        if self.dir.is_none() {
-            return Err(Error::DirNotSpecified);
-        }
-        let dir = self.dir.unwrap();
-
-        let mut path: PathBuf = PathBuf::from(&dir);
+        let mut path: PathBuf = PathBuf::from(&self.dir);
         path.push(&self.filename);
         fs::remove_file(&path).await?;
 
