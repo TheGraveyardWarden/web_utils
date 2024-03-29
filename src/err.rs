@@ -23,7 +23,7 @@ pub enum Error {
     IOError(IOError),
     TokenExpired,
     InvalidFile,
-    DirNotSpecified
+    FileTooLarge(usize)
 }
 
 impl Error {
@@ -38,7 +38,7 @@ impl Error {
             IOError(err) => format!("IOError: {:?}", err),
             TokenExpired => format!("Token expired"),
             InvalidFile => format!("Invalid file"),
-            DirNotSpecified => format!("directory not specified")
+            FileTooLarge(max_size) => format!("File is too large. max size is {:?} bytes", max_size)
         }
     }
 }

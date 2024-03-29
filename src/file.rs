@@ -5,7 +5,7 @@ use actix_multipart::Field;
 use futures::TryStreamExt;
 use tokio::{
     fs,
-    io::{AsyncWriteExt, AsyncReadExt}
+    io::AsyncWriteExt
 };
 use std::path::PathBuf;
 
@@ -14,6 +14,7 @@ use std::path::PathBuf;
 pub struct FileSaver<'a> {
     dir: &'a str,
     allowed_fmts: Option<Vec<&'a str>>,
+    max_size: usize
 }
 
 impl<'a> FileSaver<'a> {
@@ -38,25 +39,16 @@ impl<'a> FileSaver<'a> {
         let ext = self.get_ext_checked(filename)?;
         let (new_filename, path) = self.create_file_path(ext);
 
+        let mut size: usize = 0;
         let mut file = fs::File::create(&path).await?;
         while let Ok(Some(chunk)) = field.try_next().await {
+            size += chunk.len();
+            if size > self.max_size {
+                fs::remove_file(&path).await?;
+                return Err(Error::FileTooLarge(self.max_size));
+            }
             file.write_all(&chunk).await?;
         }
-
-        Ok(File::new(new_filename, self.dir.to_string()))
-    }
-
-    pub async fn save_path(self, filename: &str) -> Result<File> {
-        let ext = self.get_ext_checked(filename)?;
-
-        let mut src = fs::File::open(filename).await?;
-        let mut contents = vec![];
-        src.read_to_end(&mut contents).await?;
- 
-        let (new_filename, path) = self.create_file_path(ext);
-
-        let mut dst = fs::File::create(&path).await?;
-        dst.write_all(&contents).await?;
 
         Ok(File::new(new_filename, self.dir.to_string()))
     }
@@ -135,13 +127,21 @@ impl<'a> FileSaver<'a> {
 
         self
     }
+
+    pub fn max_size(mut self, max_size: usize) -> Self {
+        self.max_size = max_size;
+        self
+    }
 }
+
+const MAX_SIZE: usize = 50 * 1024 * 1024;
 
 impl<'a> Default for FileSaver<'a> {
     fn default() -> Self {
         Self {
             dir: "./",
-            allowed_fmts: None
+            allowed_fmts: None,
+            max_size: MAX_SIZE
         }
     }
 }
