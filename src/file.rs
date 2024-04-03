@@ -20,7 +20,8 @@ pub struct FileSaver<'a> {
 impl<'a> FileSaver<'a> {
     pub fn new<T>(
         dir: &'a str,
-        allowed_fmts: impl Into<Option<T>>
+        allowed_fmts: impl Into<Option<T>>,
+        max_size: usize
         ) -> Self
         where
             T: IntoIterator<Item = &'a str>
@@ -28,6 +29,21 @@ impl<'a> FileSaver<'a> {
         Self::default()
         .dir(dir)
         .allowed_fmts(allowed_fmts)
+        .max_size(max_size)
+    }
+
+    pub async fn save_bytes(&self, bytes: &[u8], filename: &str) -> Result<File> {
+        if bytes.len() > self.max_size {
+            return Err(Error::FileTooLarge(self.max_size));
+        }
+
+        let ext = self.get_ext_checked(filename)?;
+        let (new_filename, path) = self.create_file_path(ext);
+
+        let mut file = fs::File::create(&path).await?;
+        file.write_all(bytes).await?;
+
+        Ok(File::new(new_filename, self.dir.to_string()))
     }
 
     pub async fn save_field(self, field: &mut Field) -> Result<File> {
@@ -157,15 +173,19 @@ impl File {
         Self { filename, dir }
     }
 
-    pub fn get_filename(&self) -> &String {
+    pub fn filename(&self) -> &String {
         &self.filename
     }
 
-    pub fn get_dir(&self) -> &String {
+    pub fn filename_owned(self) -> String {
+        self.filename
+    }
+
+    pub fn dir(&self) -> &String {
         &self.dir
     }
 
-    pub async fn remove(self) -> Result<()> {
+    pub async fn remove(&self) -> Result<()> {
         let mut path: PathBuf = PathBuf::from(&self.dir);
         path.push(&self.filename);
         fs::remove_file(&path).await?;
