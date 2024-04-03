@@ -25,7 +25,7 @@ pub use str_to_oid;
 #[macro_export]
 macro_rules! get_by_id {
     ($ty: ty, $oid: expr, $coll: expr) => {
-        match $ty::get_by_id($oid, $coll).await {
+        match <$ty>::get_by_id($oid, $coll).await {
             Ok(n) => n,
             Err(err) => return HttpResponse::BadRequest().body(err.msg())
         }
