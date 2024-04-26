@@ -43,9 +43,27 @@ impl Error {
     }
 }
 
+impl From<Error> for u8 {
+    fn from(err: Error) -> u8 {
+        use Error::*;
+
+        match err {
+            NotFound => 1,
+            MongoError(_) => 50,
+            JsonError(_) => 51,
+            JWTError(_) => 52,
+            IOError(_) => 53,
+            TokenExpired => 2,
+            InvalidFile => 3,
+            FileTooLarge(_) => 4
+        }
+    }
+}
+
 impl_from!(MongoError, Error::MongoError);
 impl_from!(JsonError, Error::JsonError);
 impl_from!(JWTError, Error::JWTError);
 impl_from!(IOError, Error::IOError);
 
 pub type Result<T> = core::result::Result<T, Error>;
+
