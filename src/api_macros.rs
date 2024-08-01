@@ -27,6 +27,7 @@ macro_rules! get_by_id {
     ($ty: ty, $oid: expr, $coll: expr) => {
         match <$ty>::get_by_id($oid, $coll).await {
             Ok(n) => n,
+            Err(web_utils::Error::NotFound) => return HttpResponse::NotFound().finish(),
             Err(err) => return HttpResponse::BadRequest().body(err.msg())
         }
     };
