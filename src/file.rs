@@ -32,12 +32,26 @@ impl<'a> FileSaver<'a> {
         .max_size(max_size)
     }
 
-    pub async fn save_bytes(&self, bytes: &[u8], filename: &str) -> Result<File> {
+    pub async fn save_bytes_checked(&self, bytes: &[u8], filename: &str) -> Result<File> {
         if bytes.len() > self.max_size {
             return Err(Error::FileTooLarge(self.max_size));
         }
 
         let ext = self.get_ext_checked(filename)?;
+        let (new_filename, path) = self.create_file_path(ext);
+
+        let mut file = fs::File::create(&path).await?;
+        file.write_all(bytes).await?;
+
+        Ok(File::new(new_filename, self.dir.to_string()))
+    }
+
+    pub async fn save_bytes(&self, bytes: &[u8], filename: &str) -> Result<File> {
+        let ext = match Self::get_ext(filename) {
+            Some(x) => x,
+            None => return Err(Error::InvalidFile)
+        };
+
         let (new_filename, path) = self.create_file_path(ext);
 
         let mut file = fs::File::create(&path).await?;
