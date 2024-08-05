@@ -45,3 +45,17 @@ macro_rules! resp_with_auth_headers {
 }
 
 pub use resp_with_auth_headers;
+
+#[macro_export]
+macro_rules! impl_serve_file {
+    ($dir: expr) => {
+        pub async fn file(path: web::Path<String>) -> AWResult<NamedFile> {
+            let mut img_path: PathBuf = PathBuf::from($dir);
+            img_path.push(path.into_inner());
+            Ok(NamedFile::open(img_path)?)
+        }
+    };
+}
+pub use impl_serve_file;
+
+
