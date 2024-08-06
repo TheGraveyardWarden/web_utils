@@ -10,7 +10,7 @@ use tokio::{
 use std::path::PathBuf;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FileSaver<'a> {
     dir: &'a str,
     allowed_fmts: Option<Vec<&'a str>>,
