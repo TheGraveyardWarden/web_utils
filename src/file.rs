@@ -7,7 +7,7 @@ use tokio::{
     fs,
     io::AsyncWriteExt
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 
 #[derive(Debug, Clone)]
@@ -56,6 +56,19 @@ impl<'a> FileSaver<'a> {
 
         let mut file = fs::File::create(&path).await?;
         file.write_all(bytes).await?;
+
+        Ok(File::new(new_filename, self.dir.to_string()))
+    }
+
+    pub async fn copy(&self, src: impl AsRef<Path>, filename: &str) -> Result<File> {
+        let ext = match Self::get_ext(filename) {
+            Some(x) => x,
+            None => return Err(Error::InvalidFile)
+        };
+
+        let (new_filename, path) = self.create_file_path(ext);
+
+        fs::copy(src, path).await?;
 
         Ok(File::new(new_filename, self.dir.to_string()))
     }
@@ -176,7 +189,7 @@ impl<'a> Default for FileSaver<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct File {
     filename: String,
     dir: String
