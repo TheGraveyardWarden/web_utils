@@ -9,4 +9,4 @@ pub trait ToJson: Serialize {
 }
 
 impl ToJson for Map<String, Value> {}
-impl ToJson for Vec<Map<String, Value>> {}
+impl<T: ToJson> ToJson for Vec<T> {}
